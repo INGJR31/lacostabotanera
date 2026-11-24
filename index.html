@@ -3430,7 +3430,7 @@ function boot(){S.me=ls.get('lcb-me');if(S.me==='__soporte')S.me=null;if(me()){S
 const homeView=()=>({cocina:'kds',barra:'kds'})[role()]||'mesas';
 function gate(){
   const g=$('#gate');
-  if(!S.ready){g.hidden=false;$('#app').hidden=true;const lp=g.querySelector('.box p');if(lp&&S.note)lp.textContent=S.note;return true}
+  if(!S.ready){g.hidden=false;$('#app').hidden=true;const lp=g.querySelector('.box p');if(lp&&S.note)lp.textContent=S.note;if(S.cloud&&S.note&&!g.querySelector('#gAct')){const d=document.createElement('div');d.id='gAct';d.className='row';d.style.justifyContent='center';d.innerHTML='<button class="btn gold" onclick="location.reload()">Reintentar</button><button class="btn" data-act="devOut">Desconectar dispositivo</button>';g.querySelector('.box').appendChild(d)}return true}
   if(!S.users.length){
     g.hidden=false;$('#app').hidden=true;
     if(!$('#setup')){g.innerHTML=SEA+'<div class="box"><img src="'+LOGOW+'" alt="La Costa Botanera"><h2>Bienvenido. Crea al administrador</h2><form id="setup"><label>Tu nombre<input type="text" id="sName" required maxlength="30" class="in"></label><label>PIN de 4 a 6 números<input type="password" id="sPin" required inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" class="in"></label><label>Repite el PIN<input type="password" id="sPin2" required inputmode="numeric" maxlength="6" class="in"></label><p id="sErr" style="color:#c62828;margin:0"></p><button class="btn gold">Crear y entrar</button></form><p>Después agregas a tus meseros, cocina y barra en <b>Administración</b>.</p><button class="suplink" type="button" data-act="supLogin">'+svg('key')+' Acceso de soporte</button>'+FOOT+'</div>';
@@ -3730,7 +3730,7 @@ function makeSupaDB(sb){
   const errCode=e=>{const m=String(e&&(e.message||e.details||e.hint||e)||'');return !navigator.onLine||/fetch|network|Failed|timeout|Load failed|ERR_/i.test(m)?'unavailable':/JWT|token|permission|policy|42501|401|403|row-level/i.test(m)?'revoked':'unavailable'};
   async function fetchCol(col){const all={};let from=0;for(;;){const {data,error}=await sb.from('docs').select('path,data').eq('col',col).range(from,from+999);if(error)throw error;for(const r of data)all[r.path]=r.data;if(data.length<1000)break;from+=1000}
     st[col]=all;loaded[col]='server';saveCache(col);emit(col,false)}
-  function refresh(col){fetchCol(col).catch(()=>{pend.add(col);if(!timer)timer=setTimeout(()=>{timer=null;const cs=[...pend];pend.clear();cs.forEach(refresh)},15000)})}
+  function refresh(col){fetchCol(col).catch(e=>{const m=String(e&&(e.message||e.details||e.code)||e);if(!/fetch|network|Load failed/i.test(m)||navigator.onLine){window.__sbErr=m;if(!S.ready){S.note=sbHelp(m);render()}}pend.add(col);if(!timer)timer=setTimeout(()=>{timer=null;const cs=[...pend];pend.clear();cs.forEach(refresh)},15000)})}
   async function ensure(col){if(loaded[col])return;loaded[col]='loading';const c=await IDB.get('col:'+col);if(c&&!st[col]){st[col]=c;loaded[col]='cache';emit(col,true)}refresh(col)}
   sb.channel('docs-all').on('postgres_changes',{event:'*',schema:'public',table:'docs'},p=>{
     if(p.eventType==='DELETE'){const path=p.old&&p.old.path;if(!path)return;const col=colOf(path);if(st[col]&&path in st[col]){delete st[col][path];saveCache(col);emit(col,false)}return}
@@ -3749,6 +3749,7 @@ function makeSupaDB(sb){
   const mkQ=(col,o,l)=>({orderBy:(f,d)=>mkQ(col,[f,d||'asc'],l),limit:n=>mkQ(col,o,n),where:()=>mkQ(col,o,l),onSnapshot:(cb,err)=>sub(col,null,o,l)(cb,err),doc:id=>doc(col+'/'+(id||uid()))});
   return{doc,collection:col=>mkQ(col,null,0),isLive:()=>live};
 }
+function sbHelp(m){return /does not exist|42P01|schema cache|Could not find the table/i.test(m)?'Falta crear la base de datos: en Supabase → SQL Editor pega setup-completo.sql y toca Run. (Detalle: '+m+')':/permission denied|42501/i.test(m)?'La cuenta no tiene permiso sobre la tabla: en Supabase → SQL Editor corre otra vez setup-completo.sql. (Detalle: '+m+')':/JWT|token|expired/i.test(m)?'La sesión del dispositivo venció: toca Salir y vuelve a conectar. (Detalle: '+m+')':'Error del servidor: '+m}
 function cloudSetup(msg){
   const g=$('#gate');g.hidden=false;$('#app').hidden=true;const c=sbCfg();
   g.innerHTML=SEA+'<div class="box"><img src="'+LOGOW+'" alt="La Costa Botanera"><h2>Conectar con la nube</h2>'+(msg?'<p style="color:#c62828">'+esc(msg)+'</p>':'')+
