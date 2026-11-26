@@ -3120,13 +3120,25 @@ header{background:color-mix(in srgb,var(--panel) 80%,transparent)!important;-web
   </section>
 
   <section class="view" id="v-conteo">
-    <div class="top"><h2>Inventario del día</h2></div>
-    <div class="chips" id="cAreas"></div>
-    <div class="card"><div id="cStat" style="margin-bottom:12px"></div>
-      <p class="hint" style="margin:0 0 10px">Cuenta físicamente cada producto y escribe cuántos hay. Solo se registra el conteo: no cambia precios ni el menú. El administrador revisa las diferencias.</p>
-      <div class="scroll"><table><thead><tr><th>Producto</th><th class="r">En sistema</th><th>Conteo físico</th><th class="r">Diferencia</th></tr></thead><tbody id="cBody"></tbody></table></div>
-      <div class="row"><button class="btn gold big" id="cSave" data-act="cSave">Guardar conteo de hoy</button></div></div>
-    <div class="card"><h3>Conteos anteriores</h3><div class="scroll"><table class="stack"><thead><tr><th>Fecha</th><th>Área</th><th>Contó</th><th>Resultado</th><th></th></tr></thead><tbody id="cHist"></tbody></table></div></div>
+    <div class="top"><h2>Inventario · barra y bodega</h2><span id="invAdmin"><button class="btn gold" data-act="invNew">+ Agregar artículo</button></span></div>
+    <div class="chips" id="invTabs"></div>
+    <div class="note" id="invLow" style="border-radius:12px;margin-bottom:12px"></div>
+    <div class="invp" data-p="exist">
+      <div class="chips wrap" id="invCats"></div>
+      <input type="search" id="invQ" placeholder="Buscar artículo…" aria-label="Buscar artículo" style="margin-bottom:12px">
+      <div class="card"><div class="scroll"><table class="stack"><thead><tr><th>Artículo</th><th class="r">Barra</th><th class="r">Bodega</th><th class="r">Total</th><th></th></tr></thead><tbody id="invBody"></tbody></table></div>
+      <p class="hint">Este inventario es independiente del menú. Solo el administrador agrega artículos y cambia existencias: <b>Entrada</b> cuando llega mercancía, <b>A barra</b> para pasar de bodega a barra, <b>Ajustar</b> para mermas o correcciones (pide motivo). Todo queda en la bitácora.</p></div>
+    </div>
+    <div class="invp" data-p="conteo">
+      <div class="card"><div id="cStat" style="margin-bottom:10px"></div>
+        <p class="hint" style="margin:0 0 10px">Cuenta físicamente lo que hay en <b>barra</b> y en <b>bodega</b> y escríbelo. Solo se registra el conteo: no cambia existencias. El administrador revisa las diferencias y lo aplica.</p>
+        <div class="scroll"><table><thead><tr><th>Artículo</th><th class="r">Barra (sistema)</th><th>Barra contado</th><th class="r">Bodega (sistema)</th><th>Bodega contado</th><th class="r">Diferencia</th></tr></thead><tbody id="cBody"></tbody></table></div>
+        <div class="row"><button class="btn gold big" id="cSave" data-act="cSave">Guardar conteo de hoy</button></div></div>
+    </div>
+    <div class="invp" data-p="hist">
+      <div class="card"><h3>Conteos diarios</h3><div class="scroll"><table class="stack"><thead><tr><th>Fecha</th><th>Contó</th><th>Resultado</th><th></th></tr></thead><tbody id="cHist"></tbody></table></div></div>
+      <div class="card"><h3>Movimientos de inventario</h3><div class="scroll"><table class="stack"><thead><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Artículo</th><th>Detalle</th></tr></thead><tbody id="mvBody"></tbody></table></div></div>
+    </div>
   </section>
 
   <section class="view" id="v-soporte">
@@ -3230,9 +3242,9 @@ const AREAS={cocina:'Cocina',barra:'Barra'};
 const P=(name,cat,price,track,stock)=>({name,cat,price,track,stock});
 const SEED=[{"id": "c01", "name": "Charola de $400", "cat": "Charolas", "price": 400, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin pepino, extra limón, poco picante, muy picante, salsa aparte", "stock": 0}, {"id": "c02", "name": "Charola de $600", "cat": "Charolas", "price": 600, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin pepino, extra limón, poco picante, muy picante, salsa aparte", "stock": 0}, {"id": "c03", "name": "Costilla Frita", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin chile, poco picante, extra limón, salsa aparte", "stock": 0}, {"id": "c04", "name": "Macabil", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin chile, poco picante, extra limón, salsa aparte", "stock": 0}, {"id": "c05", "name": "Salchicha de Macabil", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin chile, poco picante, extra limón, salsa aparte", "stock": 0}, {"id": "c06", "name": "Camarones a la Diabla", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin pepino, extra limón, poco picante, muy picante, salsa aparte", "stock": 0}, {"id": "c07", "name": "Camarones al Mojo de Ajo", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin pepino, extra limón, poco picante, muy picante, salsa aparte", "stock": 0}, {"id": "c08", "name": "Camarones Empanizados", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin pepino, extra limón, poco picante, muy picante, salsa aparte", "stock": 0}, {"id": "c09", "name": "Camarones al Natural", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin pepino, extra limón, poco picante, muy picante, salsa aparte", "stock": 0}, {"id": "c10", "name": "Ensalada de Camarón", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, aderezo aparte, extra limón", "stock": 0}, {"id": "c11", "name": "Ensalada a la Crema", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, aderezo aparte, extra limón", "stock": 0}, {"id": "c12", "name": "Ensalada de Marisco", "cat": "Platillos", "price": 180, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, aderezo aparte, extra limón", "stock": 0}, {"id": "c13", "name": "Ensalada Turula", "cat": "Platillos", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, aderezo aparte, extra limón", "stock": 0}, {"id": "c14", "name": "Ensalada de Pollo", "cat": "Platillos", "price": 150, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, aderezo aparte, extra limón", "stock": 0}, {"id": "c15", "name": "Quesillo al Aguachile", "cat": "Aguachiles y más", "price": 130, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Picante: poco picante, normal, muy picante; Preparación: sin cebolla, sin pepino, extra limón", "stock": 0}, {"id": "c16", "name": "Quesillo Natural", "cat": "Aguachiles y más", "price": 100, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin chile, poco picante, extra limón, salsa aparte", "stock": 0}, {"id": "c17", "name": "Queso Cotija", "cat": "Aguachiles y más", "price": 140, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin chile, poco picante, extra limón, salsa aparte", "stock": 0}, {"id": "c18", "name": "Aguachile Verde", "cat": "Aguachiles y más", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Picante: poco picante, normal, muy picante; Preparación: sin cebolla, sin pepino, extra limón", "stock": 0}, {"id": "c19", "name": "Aguachile Negro", "cat": "Aguachiles y más", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Picante: poco picante, normal, muy picante; Preparación: sin cebolla, sin pepino, extra limón", "stock": 0}, {"id": "c20", "name": "Aguachile Rojo", "cat": "Aguachiles y más", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Picante: poco picante, normal, muy picante; Preparación: sin cebolla, sin pepino, extra limón", "stock": 0}, {"id": "c21", "name": "Tosti Aguachile", "cat": "Aguachiles y más", "price": 180, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Tipo*: Verde, Rojo, Negro; Picante: poco picante, normal, muy picante; Preparación: sin cebolla, sin pepino, extra limón", "stock": 0}, {"id": "c22", "name": "Coctel Chico", "cat": "Cócteles", "price": 110, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin aguacate, extra limón, poco picante, muy picante", "stock": 0}, {"id": "c23", "name": "Coctel Mediano", "cat": "Cócteles", "price": 140, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin aguacate, extra limón, poco picante, muy picante", "stock": 0}, {"id": "c24", "name": "Coctel Grande", "cat": "Cócteles", "price": 170, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin tomate, sin cilantro, sin aguacate, extra limón, poco picante, muy picante", "stock": 0}, {"id": "c25", "name": "Carne Asada", "cat": "Carne asada", "price": 180, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Término*: rojo, medio, tres cuartos, bien cocido; Extras: sin cebolla, extra salsa, poco picante", "stock": 0}, {"id": "c26", "name": "Carne Asada al Aguachile", "cat": "Carne asada", "price": 180, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Término*: rojo, medio, tres cuartos, bien cocido; Extras: sin cebolla, extra salsa, poco picante; Picante: poco picante, normal, muy picante", "stock": 0}, {"id": "c27", "name": "Totopo al Ajillo", "cat": "Extras", "price": 50, "active": true, "track": false, "min": 0, "area": "cocina", "opts": "Preparación: sin cebolla, sin chile, poco picante, extra limón, salsa aparte", "stock": 0}, {"id": "c28", "name": "Michelada", "cat": "Bebidas", "price": 100, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Sabor*: Clásica, Mango, Tamarindo; Cerveza*: Corona, Victoria, Modelo Especial, Negra Modelo, Indio, XX Lager, Tecate; Escarchado: chamoy, tajín, sal, sin escarchar; Picante: poco picante, muy picante", "stock": 0}, {"id": "c29", "name": "Chiquiada", "cat": "Bebidas", "price": 50, "active": true, "track": false, "min": 0, "area": "barra", "opts": "", "stock": 0}, {"id": "c30", "name": "Chiquiada Six", "cat": "Bebidas", "price": 350, "active": true, "track": false, "min": 0, "area": "barra", "opts": "", "stock": 0}, {"id": "c31", "name": "Corona", "cat": "Cervezas", "price": 40, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c32", "name": "Victoria", "cat": "Cervezas", "price": 40, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c33", "name": "Modelo Especial", "cat": "Cervezas", "price": 45, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c34", "name": "Negra Modelo", "cat": "Cervezas", "price": 45, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c35", "name": "Indio", "cat": "Cervezas", "price": 40, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c36", "name": "XX Lager", "cat": "Cervezas", "price": 40, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c37", "name": "Tecate", "cat": "Cervezas", "price": 40, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c38", "name": "Caguama Corona", "cat": "Cervezas", "price": 95, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}, {"id": "c39", "name": "Caguama Victoria", "cat": "Cervezas", "price": 95, "active": true, "track": false, "min": 0, "area": "barra", "opts": "Servir: bien fría, vaso escarchado, con limón y sal, preparada", "stock": 0}];
 const BIZ0={biz:'La Costa Botanera',tag:'De Todo Un Poco',city:'Tonalá, Chiapas',tel:'966 106 0549',foot:'¡Gracias por su visita!',limit:5000};
-const COLS=['tabs','sales','cortes','orders','log','logarch','retiros','mcortes','conteos'];
+const COLS=['tabs','sales','cortes','orders','log','logarch','retiros','mcortes','conteos','invmov'];
 
-const S={mode:'loading',ready:false,catalog:[],info:{...BIZ0},users:[],tables:[],tabs:[],sales:[],cortes:[],orders:[],log:[],logarch:[],retiros:[],mcortes:[],conteos:[],stock:{},imgs:{},me:null,view:'mesas',open:null,openTable:null,cat:'Todo',q:'',all:false,note:'',logCat:'todos',logSrc:'cur',flash:null};
+const S={mode:'loading',ready:false,catalog:[],info:{...BIZ0},users:[],tables:[],tabs:[],sales:[],cortes:[],orders:[],log:[],logarch:[],retiros:[],mcortes:[],conteos:[],stock:{},imgs:{},inv:[],invst:{},invmov:[],me:null,view:'mesas',open:null,openTable:null,cat:'Todo',q:'',all:false,note:'',logCat:'todos',logSrc:'cur',flash:null};
 let db=null,dl=null,L=null;const LKEY='lcb-pos-v1';
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
 
@@ -3241,9 +3253,11 @@ const cleanUsers=d=>d&&Array.isArray(d.users)?d.users.map(u=>({id:String(u.id),n
 const cleanTables=d=>d&&Array.isArray(d.tables)?d.tables.map(t=>({id:String(t.id),name:String(t.name||''),zone:String(t.zone||''),waiter:t.waiter?String(t.waiter):'',seats:Math.min(10,Math.max(2,+t.seats||4)),shape:t.shape==='cuadrada'?'cuadrada':'redonda'})):[];
 const cleanCat=d=>d&&Array.isArray(d.products)?d.products.map(p=>({id:String(p.id),name:String(p.name||''),cat:String(p.cat||'Otros'),price:+p.price||0,active:p.active!==false,track:!!p.track,min:+p.min||0,area:AREAS[p.area]?p.area:areaOf(p.cat),opts:typeof p.opts==='string'?p.opts:defOpts(p.cat)})):[];
 const okImg=v=>typeof v==='string'&&v.length<120000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v);
-const sorters={cortes:(a,b)=>b.closedAt-a.closedAt,logarch:(a,b)=>b.closedAt-a.closedAt};
+const sorters={invmov:(a,b)=>b.at-a.at,cortes:(a,b)=>b.closedAt-a.closedAt,logarch:(a,b)=>b.closedAt-a.closedAt};
 function applyLocal(path,data){
   const [col,id]=path.split('/');
+  if(col==='config'&&id==='inv'){S.inv=cleanInv(data);return}
+  if(col==='invstock'){if(data)S.invst[id]={barra:+data.barra||0,bodega:+data.bodega||0};else delete S.invst[id];return}
   if(col==='config'){if(id==='catalog'){S.catalog=cleanCat(data);S.info={...BIZ0,...(data&&data.info||{})}}else if(id==='users')S.users=cleanUsers(data);else S.tables=cleanTables(data);return}
   if(col==='stock'){if(data)S.stock[id]=+data.qty||0;else delete S.stock[id];return}
   if(col==='img'){const v=data&&data.src;if(okImg(v))S.imgs[id]=v;else delete S.imgs[id];return}
@@ -3287,12 +3301,13 @@ const catDoc=()=>({info:S.info,products:S.catalog});
 function logEv(cat,action,detail,alert){if(!S.me&&cat!=='acceso')return;write('log/'+uid(),{at:Date.now(),user:S.me||'',userName:uname(S.me),cat,action,detail:String(detail||''),alert:!!alert},true)}
 function loadLocal(){let sv=null;try{sv=JSON.parse(ls.get(LKEY)||'null')}catch(e){}
   if(!sv||!sv.config){sv={config:{catalog:{info:BIZ0,products:SEED.map(({stock,...p})=>p)},users:{users:[]},tables:{tables:Array.from({length:10},(_,i)=>({id:'m'+(i+1),name:'Mesa '+(i+1),zone:i<6?'Salón':'Terraza',waiter:'',seats:i%3===2?6:4,shape:i%4===3?'cuadrada':'redonda'}))}},stock:{}};SEED.forEach(p=>{if(p.track)sv.stock[p.id]={qty:p.stock}})}
-  for(const c of[...COLS,'stock','img'])sv[c]=sv[c]||{};
+  for(const c of[...COLS,'stock','img','invstock'])sv[c]=sv[c]||{};
+  if(!sv.config.inv){sv.config.inv={items:INV0};}
   L=sv;for(const c of COLS)S[c]=[];S.stock={};for(const k of['catalog','users','tables'])applyLocal('config/'+k,L.config[k]);
-  S.imgs={};for(const c of[...COLS,'stock','img'])for(const [id,v] of Object.entries(L[c]))applyLocal(c+'/'+id,v);
+  applyLocal('config/inv',L.config.inv);S.imgs={};S.invst={};for(const c of[...COLS,'stock','img','invstock'])for(const [id,v] of Object.entries(L[c]))applyLocal(c+'/'+id,v);
 }
 const seedTables=()=>Array.from({length:10},(_,i)=>({id:'m'+(i+1),name:'Mesa '+(i+1),zone:i<6?'Salón':'Terraza',waiter:'',seats:i%3===2?6:4,shape:i%4===3?'cuadrada':'redonda'}));
-function seedIfEmpty(){if(S.mode!=='db'||S.catalog.length)return;write('config/catalog',{info:BIZ0,products:SEED.map(({stock,...p})=>p)},true);if(!S.tables.length)write('config/tables',{tables:seedTables()},true);SEED.forEach(p=>{if(p.track)write('stock/'+p.id,{qty:p.stock},true)})}
+function seedIfEmpty(){if(S.mode==='db'&&!S.inv.length)write('config/inv',{items:INV0},true);if(S.mode!=='db'||S.catalog.length)return;write('config/catalog',{info:BIZ0,products:SEED.map(({stock,...p})=>p)},true);if(!S.tables.length)write('config/tables',{tables:seedTables()},true);SEED.forEach(p=>{if(p.track)write('stock/'+p.id,{qty:p.stock},true)})}
 function startLocal(msg){S.mode='local';loadLocal();S.ready=true;S.note=msg||'';boot()}
 let logSub=false;
 function startDb(){
@@ -3308,6 +3323,9 @@ function startDb(){
   db.collection('orders').onSnapshot(q=>{done(q);const next=rows(q).sort((a,b)=>(a.at||0)-(b.at||0));orderDiff(S.orders,next);S.orders=next;render()},err);
   for(const c of['mcortes','conteos'])db.collection(c).onSnapshot(q=>{done(q);S[c]=q.docs.map(x=>({...clone(x.data()),id:x.id})).sort((a,b)=>a.at-b.at);render()},err);
   db.collection('retiros').onSnapshot(q=>{done(q);S.retiros=q.docs.map(x=>({...clone(x.data()),id:x.id})).sort((a,b)=>a.at-b.at);render()},err);
+  db.doc('config/inv').onSnapshot(s=>{applyLocal('config/inv',s.exists?s.data():null);if(S.view==='conteo')render()},err);
+  db.collection('invstock').onSnapshot(q=>{done(q);S.invst={};q.docs.forEach(x=>{const d=x.data();S.invst[x.id]={barra:+d.barra||0,bodega:+d.bodega||0}});if(S.view==='conteo'||S.view==='admin')render()},err);
+  db.collection('invmov').orderBy('at','desc').limit(150).onSnapshot(q=>{S.invmov=q.docs.map(x=>({...clone(x.data()),id:x.id}));if(S.view==='conteo')render()},err);
   db.collection('img').onSnapshot(q=>{done(q);S.imgs={};q.docs.forEach(x=>{const v=x.data().src;if(okImg(v))S.imgs[x.id]=v});render()},err);
   db.collection('stock').onSnapshot(q=>{done(q);S.stock={};q.docs.forEach(x=>S.stock[x.id]=+x.data().qty||0);render()},err);
   db.collection('cortes').orderBy('closedAt','desc').limit(40).onSnapshot(q=>{done(q);S.cortes=rows(q);render()},err);
@@ -3404,7 +3422,7 @@ function supLogin(){
     $('#supe').textContent='Llave incorrecta ('+n+' de 5).';$('#supk').select()};
 }
 function backupObj(){const col=c=>Object.fromEntries(S[c].map(({id,...x})=>[id,x]));
-  return{programa:'La Costa Botanera POS',version:4,creado:new Date().toISOString(),config:{catalog:catDoc(),users:{users:S.users},tables:{tables:S.tables}},stock:Object.fromEntries(Object.entries(S.stock).map(([k,v])=>[k,{qty:v}])),img:Object.fromEntries(Object.entries(S.imgs).map(([k,v])=>[k,{src:v}])),tabs:col('tabs'),sales:col('sales'),cortes:col('cortes'),orders:col('orders'),retiros:col('retiros'),log:col('log')}}
+  return{programa:'La Costa Botanera POS',version:4,creado:new Date().toISOString(),config:{catalog:catDoc(),users:{users:S.users},tables:{tables:S.tables},inv:{items:S.inv}},invstock:Object.fromEntries(Object.entries(S.invst)),invmov:col('invmov'),conteos:col('conteos'),stock:Object.fromEntries(Object.entries(S.stock).map(([k,v])=>[k,{qty:v}])),img:Object.fromEntries(Object.entries(S.imgs).map(([k,v])=>[k,{src:v}])),tabs:col('tabs'),sales:col('sales'),cortes:col('cortes'),orders:col('orders'),retiros:col('retiros'),log:col('log')}}
 async function backupDownload(obj){const txt=JSON.stringify(obj||backupObj(),null,1),name='respaldo-la-costa-botanera-'+new Date().toISOString().slice(0,10)+'.json';logEv('soporte','Descargó respaldo','');
   if(dl){try{await dl.save({filename:name,data:txt});toast('Respaldo descargado')}catch(e){toast(e&&e.code==='declined'?'Descarga cancelada':'No se pudo descargar; usa Copiar respaldo')}return}
   try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();toast('Respaldo descargado')}catch(e){copy(txt)}}
@@ -3415,8 +3433,8 @@ const bakList=()=>{try{return JSON.parse(ls.get('lcb-baks')||'[]')}catch(e){retu
 function restoreBackup(txt){let o;try{o=JSON.parse(txt)}catch(e){toast('El texto no es un respaldo válido');return}
   if(!o||!o.config||!o.config.catalog){toast('El texto no es un respaldo de este programa');return}
   confirmBox('¿Restaurar respaldo?','Se reemplazará el menú, usuarios, mesas e inventario, y se agregarán las cuentas, ventas y cortes del respaldo ('+(o.creado||'sin fecha')+').','Restaurar',()=>{
-    for(const k of['catalog','users','tables'])if(o.config[k])write('config/'+k,o.config[k],true);
-    for(const c of['stock','img','tabs','sales','cortes','orders','retiros'])for(const [id,v] of Object.entries(o[c]||{}))write(c+'/'+id,v,true);
+    for(const k of['catalog','users','tables','inv'])if(o.config[k])write('config/'+k,o.config[k],true);
+    for(const c of['stock','img','invstock','invmov','conteos','tabs','sales','cortes','orders','retiros'])for(const [id,v] of Object.entries(o[c]||{}))write(c+'/'+id,v,true);
     logEv('soporte','Restauró respaldo',o.creado||'',true);render();toast('Respaldo restaurado')})}
 function rSoporte(){
   const n=c=>S[c].length;
@@ -3701,16 +3719,6 @@ function rMis(){
 /* ---------- inventario diario ---------- */
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const canInv=()=>['admin','soporte','cocina','barra'].includes(role());
-function rConteo(){
-  const r=role(),adm=isAdmin();if(!adm)S.cArea=r;S.cArea=S.cArea||'barra';const a=S.cArea,id=today()+'-'+a,cur=S.conteos.find(x=>x.id===id);
-  $('#cAreas').innerHTML=adm?Object.entries(AREAS).map(([k,l])=>'<button class="chip" data-act="cArea" data-id="'+k+'" aria-pressed="'+(a===k)+'">'+svg(k==='cocina'?'chef':'bar')+l+'</button>').join(''):'';
-  const list=S.catalog.filter(p=>p.track&&p.active&&p.area===a);
-  $('#cStat').innerHTML=cur?'<span class="st l">Conteo de hoy guardado</span> <span class="hint">'+hora(cur.at)+' por '+esc(cur.byName)+(cur.applied?' · aplicado al inventario por '+esc(cur.appliedBy):' · pendiente de revisar por el administrador')+'</span>':'<span class="st p">Conteo de hoy pendiente</span>';
-  if($('#cBody').contains(document.activeElement))return;
-  $('#cBody').innerHTML=list.length?list.map(p=>{const sys=S.stock[p.id]||0,prev=cur&&cur.items.find(i=>i.pid===p.id);return'<tr data-pid="'+esc(p.id)+'" data-sys="'+sys+'"><td>'+esc(p.name)+'</td><td class="r num">'+sys+'</td><td><input class="in num cq" type="number" min="0" step="1" inputmode="numeric" value="'+(prev?esc(prev.count):'')+'" aria-label="Conteo de '+esc(p.name)+'" style="max-width:110px"></td><td class="r num cd">'+(prev?(prev.diff>0?'+':'')+prev.diff:'')+'</td></tr>'}).join(''):'<tr><td colspan="4" class="empty">No hay productos con inventario en '+AREAS[a].toLowerCase()+'. El administrador los activa en Menú y precios → Editar → Contar inventario.</td></tr>';
-  $('#cSave').disabled=!list.length;
-  $('#cHist').innerHTML=S.conteos.slice().reverse().slice(0,30).map(x=>{const dif=x.items.filter(i=>i.diff);return'<tr class="'+(dif.length?'al':'')+'"><td>'+esc(x.date)+'</td><td>'+AREAS[x.area]+'</td><td>'+esc(x.byName)+' · '+hora(x.at)+'</td><td>'+(dif.length?dif.length+' con diferencia ('+dif.map(i=>esc(i.name)+' '+(i.diff>0?'+':'')+i.diff).join(', ')+')':'Todo cuadra')+'</td><td class="r" style="white-space:nowrap">'+(x.applied?'<span class="hint">Aplicado</span>':adm?'<button class="btn navy" data-act="cApply" data-id="'+esc(x.id)+'">Aplicar al inventario</button>':'<span class="hint">Pendiente</span>')+'</td></tr>'}).join('')||'<tr><td colspan="5" class="empty">Aún no hay conteos.</td></tr>';
-}
 
 /* ---------- Supabase (GitHub Pages) ---------- */
 const IDB=(()=>{let dbp=null;const open=()=>dbp||(dbp=new Promise((res,rej)=>{const r=indexedDB.open('lcb-cache',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
@@ -3776,6 +3784,87 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!inFrame&&
   navigator.serviceWorker.register('./sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('Hay una versión nueva del programa: recarga la página para usarla')})})}).catch(()=>{});
 }
 
+/* ---------- inventario (barra y bodega, independiente del menú) ---------- */
+const UNITS=['botella','caguama','lata','pieza','kg','litro','bolsa','caja','frasco','paquete','charola'];
+const INV0=(()=>{const I=(name,cat,unit,mb,mg)=>({name,cat,unit,minBarra:mb,minBodega:mg,active:true});return[
+  I('Corona (botella)','Cervezas','botella',12,24),I('Victoria (botella)','Cervezas','botella',12,24),I('Modelo Especial (botella)','Cervezas','botella',6,24),I('Negra Modelo (botella)','Cervezas','botella',6,24),
+  I('Indio (botella)','Cervezas','botella',6,24),I('XX Lager (botella)','Cervezas','botella',6,24),I('Tecate (lata)','Cervezas','lata',6,24),I('Caguama Corona','Cervezas','caguama',4,12),I('Caguama Victoria','Cervezas','caguama',4,12),
+  I('Clamato','Barra','litro',2,6),I('Chamoy','Barra','botella',1,2),I('Tajín','Barra','frasco',1,2),I('Salsa para michelada','Barra','botella',1,3),I('Pulpa de mango','Barra','litro',1,2),I('Pulpa de tamarindo','Barra','litro',1,2),I('Hielo','Barra','bolsa',2,4),
+  I('Camarón','Cocina','kg',0,3),I('Pescado','Cocina','kg',0,2),I('Costilla','Cocina','kg',0,2),I('Carne de res','Cocina','kg',0,2),I('Queso Cotija','Cocina','kg',0,1),I('Quesillo','Cocina','kg',0,1),I('Limón','Cocina','kg',1,3),I('Totopos','Cocina','bolsa',1,3)
+].map((x,i)=>({id:'i'+String(i+1).padStart(2,'0'),...x}))})();
+const cleanInv=d=>d&&Array.isArray(d.items)?d.items.map(x=>({id:String(x.id),name:String(x.name||''),cat:String(x.cat||'General'),unit:String(x.unit||'pieza'),minBarra:+x.minBarra||0,minBodega:+x.minBodega||0,active:x.active!==false})):[];
+const qn=n=>{n=Math.round((+n||0)*100)/100;return String(n)};
+const invOf=id=>S.invst[id]||{barra:0,bodega:0};
+const invLowList=()=>S.inv.filter(x=>x.active&&(invOf(x.id).barra<x.minBarra||invOf(x.id).bodega<x.minBodega));
+const saveInv=items=>write('config/inv',{items});
+function invMove(it,nb,ng,type,detail,why,alert){
+  const o=invOf(it.id),rec={at:Date.now(),by:S.me,byName:uname(S.me),item:it.id,name:it.name,unit:it.unit,type,barraA:o.barra,barraB:nb,bodegaA:o.bodega,bodegaB:ng,detail:detail||'',why:why||''};
+  write('invstock/'+it.id,{barra:+qn(nb),bodega:+qn(ng)},true);write('invmov/'+uid(),rec,true);
+  logEv('inventario',({entrada:'Entrada a inventario',traspaso:'Traspaso de inventario',ajuste:'Ajuste de inventario',conteo:'Aplicó conteo'})[type]||'Movimiento de inventario',it.name+': '+detail+(why?' · Motivo: '+why:''),!!alert);render();
+}
+function rInvView(){
+  const adm=isAdmin(),tab=S.invTab||'exist';
+  $('#invTabs').innerHTML=[['exist','Existencias'],['conteo','Conteo del día'],['hist','Historial']].map(([k,l])=>'<button class="chip" data-act="invTab" data-id="'+k+'" aria-pressed="'+(tab===k)+'">'+l+'</button>').join('');
+  $$('.invp').forEach(p=>p.hidden=p.dataset.p!==tab);
+  const cats=['Todo',...new Set(S.inv.map(x=>x.cat))];if(!cats.includes(S.invCat))S.invCat='Todo';
+  $('#invCats').innerHTML=cats.map(c=>'<button class="chip sm" data-act="invCat" data-id="'+esc(c)+'" aria-pressed="'+(S.invCat===c)+'">'+esc(c)+'</button>').join('');
+  const q=($('#invQ').value||'').toLowerCase(),list=S.inv.filter(x=>(S.invCat==='Todo'||x.cat===S.invCat)&&(!q||x.name.toLowerCase().includes(q)));
+  const low=invLowList();$('#invLow').textContent=low.length?'Por surtir: '+low.map(x=>x.name).join(', '):'';
+  $('#invAdmin').hidden=!adm;
+  if(tab==='exist'){
+    $('#invBody').innerHTML=S.inv.length?(list.length?list.map(x=>{const s=invOf(x.id),lb=s.barra<x.minBarra,lg=s.bodega<x.minBodega;return'<tr class="'+(x.active?'':'x')+'"><td><b>'+esc(x.name)+'</b><small style="display:block;color:var(--muted)">'+esc(x.cat)+' · '+esc(x.unit)+(x.active?'':' · inactivo')+'</small></td><td class="r num"><b class="'+(lb?'neg':'')+'">'+qn(s.barra)+'</b><small style="display:block;color:var(--muted)">mín. '+qn(x.minBarra)+'</small></td><td class="r num"><b class="'+(lg?'neg':'')+'">'+qn(s.bodega)+'</b><small style="display:block;color:var(--muted)">mín. '+qn(x.minBodega)+'</small></td><td class="r num"><b>'+qn(s.barra+s.bodega)+'</b></td>'+
+      (adm?'<td class="r" style="white-space:nowrap"><button class="btn gold" data-act="invMv" data-id="'+esc(x.id)+'" data-t="entrada">Entrada</button> <button class="btn navy" data-act="invMv" data-id="'+esc(x.id)+'" data-t="traspaso">A barra</button> <button class="btn" data-act="invMv" data-id="'+esc(x.id)+'" data-t="ajuste">Ajustar</button> <button class="btn" data-act="invEdit" data-id="'+esc(x.id)+'">Editar</button></td>':'<td></td>')+'</tr>'}).join(''):'<tr><td colspan="5" class="empty">Nada coincide.</td></tr>'):'<tr><td colspan="5" class="empty">Aún no hay artículos.'+(adm?' <button class="btn gold" data-act="invSeed">Cargar artículos sugeridos</button>':'')+'</td></tr>';
+  }
+  if(tab==='conteo'){
+    const cur=S.conteos.find(x=>x.id===today()&&x.kind==='inv');
+    $('#cStat').innerHTML=cur?'<span class="st l">Conteo de hoy guardado</span> <span class="hint">'+hora(cur.at)+' por '+esc(cur.byName)+(cur.applied?' · aplicado al inventario por '+esc(cur.appliedBy):adm?' · revisa y aplica abajo en Historial':' · el administrador lo revisa')+'</span>':'<span class="st p">Conteo de hoy pendiente</span>';
+    if(!$('#cBody').contains(document.activeElement)){
+      const act=S.inv.filter(x=>x.active);
+      $('#cBody').innerHTML=act.length?act.map(x=>{const s=invOf(x.id),pv=cur&&cur.items.find(i=>i.id===x.id);return'<tr data-iid="'+esc(x.id)+'" data-sb="'+s.barra+'" data-sg="'+s.bodega+'"><td><b>'+esc(x.name)+'</b><small style="display:block;color:var(--muted)">'+esc(x.unit)+'</small></td><td class="r num">'+qn(s.barra)+'</td><td><input class="in num cb" type="number" min="0" step="any" inputmode="decimal" value="'+(pv&&pv.cb!=null?esc(pv.cb):'')+'" aria-label="Barra contado '+esc(x.name)+'" style="max-width:100px"></td><td class="r num">'+qn(s.bodega)+'</td><td><input class="in num cg" type="number" min="0" step="any" inputmode="decimal" value="'+(pv&&pv.cg!=null?esc(pv.cg):'')+'" aria-label="Bodega contado '+esc(x.name)+'" style="max-width:100px"></td><td class="r num cd"></td></tr>'}).join(''):'<tr><td colspan="6" class="empty">El administrador todavía no da de alta artículos.</td></tr>';
+      $$('#cBody tr[data-iid]').forEach(updDiff);
+    }
+    $('#cSave').disabled=!S.inv.length;
+  }
+  if(tab==='hist'){
+    const cs=S.conteos.filter(x=>x.kind==='inv').slice().reverse().slice(0,30);
+    $('#cHist').innerHTML=cs.length?cs.map(x=>{const dif=x.items.filter(i=>(i.cb!=null&&i.cb!==i.sb)||(i.cg!=null&&i.cg!==i.sg));return'<tr class="'+(dif.length&&!x.applied?'al':'')+'"><td>'+esc(x.date)+'</td><td>'+esc(x.byName)+' · '+hora(x.at)+'</td><td>'+(dif.length?dif.length+' con diferencia: '+dif.slice(0,6).map(i=>esc(i.name)+(i.cb!=null&&i.cb!==i.sb?' barra '+qn(i.sb)+'→'+qn(i.cb):'')+(i.cg!=null&&i.cg!==i.sg?' bodega '+qn(i.sg)+'→'+qn(i.cg):'')).join('; ')+(dif.length>6?'…':''):'Todo cuadra')+'</td><td class="r" style="white-space:nowrap">'+(x.applied?'<span class="hint">Aplicado</span>':adm?'<button class="btn navy" data-act="invApply" data-id="'+esc(x.id)+'">Aplicar al inventario</button>':'<span class="hint">Pendiente</span>')+'</td></tr>'}).join(''):'<tr><td colspan="4" class="empty">Aún no hay conteos.</td></tr>';
+    $('#mvBody').innerHTML=S.invmov.length?S.invmov.slice(0,80).map(m=>'<tr><td class="num">'+fecha(m.at)+'</td><td>'+esc(m.byName)+'</td><td>'+esc(({entrada:'Entrada',traspaso:'Traspaso',ajuste:'Ajuste',conteo:'Conteo aplicado'})[m.type]||m.type)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.detail)+(m.why?' · '+esc(m.why):'')+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">Sin movimientos todavía.</td></tr>';
+  }
+}
+function updDiff(tr){const sb=+tr.dataset.sb,sg=+tr.dataset.sg,vb=tr.querySelector('.cb').value,vg=tr.querySelector('.cg').value,p=[];
+  if(vb!==''){const d=+qn(+vb-sb);if(d)p.push('<span class="'+(d<0?'neg':'pos')+'">barra '+(d>0?'+':'')+qn(d)+'</span>')}
+  if(vg!==''){const d=+qn(+vg-sg);if(d)p.push('<span class="'+(d<0?'neg':'pos')+'">bodega '+(d>0?'+':'')+qn(d)+'</span>')}
+  tr.querySelector('.cd').innerHTML=p.join('<br>')||(vb!==''||vg!==''?'<span class="pos">cuadra</span>':'')}
+function invItemModal(it){
+  if(!isAdmin())return;const n=!it;it=it||{name:'',cat:'',unit:'botella',minBarra:0,minBodega:0,active:true};
+  modal('<h2>'+(n?'Nuevo artículo':'Editar artículo')+'</h2><form id="ivf" style="display:grid;gap:10px">'+
+   '<label class="l">Nombre<input type="text" id="ivN" required maxlength="50" value="'+esc(it.name)+'" placeholder="Ej. Corona (botella), Camarón, Hielo"></label>'+
+   '<label class="l">Categoría<input type="text" id="ivC" list="ivCats" maxlength="30" value="'+esc(it.cat)+'" placeholder="Cervezas, Barra, Cocina…"></label><datalist id="ivCats">'+[...new Set(S.inv.map(x=>x.cat))].map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist>'+
+   '<label class="l">Unidad<input type="text" id="ivU" list="ivUnits" maxlength="15" value="'+esc(it.unit)+'"></label><datalist id="ivUnits">'+UNITS.map(u=>'<option value="'+u+'">').join('')+'</datalist>'+
+   '<div class="form"><label class="l">Mínimo en barra<input type="number" id="ivMB" min="0" step="any" value="'+esc(it.minBarra)+'"></label><label class="l">Mínimo en bodega<input type="number" id="ivMG" min="0" step="any" value="'+esc(it.minBodega)+'"></label></div>'+
+   (n?'<div class="form"><label class="l">Hay ahora en barra<input type="number" id="ivSB" min="0" step="any" value="0"></label><label class="l">Hay ahora en bodega<input type="number" id="ivSG" min="0" step="any" value="0"></label></div>':'<label class="l" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ivA" style="width:22px;height:22px"'+(it.active?' checked':'')+'> Activo (se cuenta a diario)</label>')+
+   '<div class="row">'+(n?'':'<button type="button" class="btn red" id="ivDel">Borrar</button>')+'<button type="button" class="btn" data-act="close">Cancelar</button><button class="btn gold">Guardar</button></div></form>');
+  if(!n)$('#ivDel').onclick=()=>reasonBox('¿Borrar '+it.name+' del inventario?','Escribe el motivo: queda registrado con tu usuario.',why=>{saveInv(S.inv.filter(x=>x.id!==it.id));write('invstock/'+it.id,null,true);logEv('inventario','Borró artículo de inventario',it.name+' · Motivo: '+why,true)});
+  $('#ivf').onsubmit=e=>{e.preventDefault();const x={id:it.id||'i'+uid(),name:$('#ivN').value.trim(),cat:$('#ivC').value.trim()||'General',unit:$('#ivU').value.trim()||'pieza',minBarra:Math.max(0,+$('#ivMB').value||0),minBodega:Math.max(0,+$('#ivMG').value||0),active:n?true:$('#ivA').checked};if(!x.name)return;const sb=n?Math.max(0,+$('#ivSB').value||0):0,sg=n?Math.max(0,+$('#ivSG').value||0):0;closeModal();
+    if(n){saveInv([...S.inv,x]);invMove(x,sb,sg,'ajuste','alta con barra '+qn(sb)+' · bodega '+qn(sg),'Alta de artículo');toast('Artículo agregado')}
+    else{saveInv(S.inv.map(y=>y.id===x.id?x:y));logEv('inventario','Editó artículo de inventario',it.name+(it.name!==x.name?' → '+x.name:'')+' · mínimos barra '+qn(x.minBarra)+' / bodega '+qn(x.minBodega)+(x.active?'':' · inactivo'),it.active!==x.active);toast('Guardado')}};
+}
+function invMoveModal(it,t){
+  if(!isAdmin())return;const s=invOf(it.id);let dir='bb';
+  const head='<h2>'+esc(it.name)+'</h2><p style="margin:0">Barra: <b class="num">'+qn(s.barra)+'</b> · Bodega: <b class="num">'+qn(s.bodega)+'</b> <span class="hint">('+esc(it.unit)+')</span></p>';
+  if(t==='entrada')modal(head+'<form id="mvf" style="display:grid;gap:10px;margin-top:10px"><label class="l">Cantidad que llegó<input type="number" id="mvQ" min="0" step="any" required inputmode="decimal"></label><div class="seg c2" id="mvTo"><button type="button" data-v="bodega" aria-pressed="true">A bodega</button><button type="button" data-v="barra" aria-pressed="false">A barra</button></div><label class="l">Nota (proveedor, factura…)<input type="text" id="mvN" maxlength="80"></label><div class="row"><button type="button" class="btn" data-act="close">Cancelar</button><button class="btn gold">Registrar entrada</button></div></form>');
+  if(t==='traspaso')modal(head+'<form id="mvf" style="display:grid;gap:10px;margin-top:10px"><div class="seg c2" id="mvDir"><button type="button" data-v="bb" aria-pressed="true">Bodega → Barra</button><button type="button" data-v="rb" aria-pressed="false">Barra → Bodega</button></div><label class="l">Cantidad<input type="number" id="mvQ" min="0" step="any" required inputmode="decimal"></label><p class="neg" id="mvE" style="margin:0;min-height:1.3em"></p><div class="row"><button type="button" class="btn" data-act="close">Cancelar</button><button class="btn navy">Pasar</button></div></form>');
+  if(t==='ajuste')modal(head+'<form id="mvf" style="display:grid;gap:10px;margin-top:10px"><div class="form"><label class="l">Queda en barra<input type="number" id="mvB" min="0" step="any" required value="'+qn(s.barra)+'"></label><label class="l">Queda en bodega<input type="number" id="mvG" min="0" step="any" required value="'+qn(s.bodega)+'"></label></div><label class="l">Motivo (obligatorio)<input type="text" id="mvW" required maxlength="80" placeholder="Merma, se rompió, corrección de conteo…"></label><div class="row"><button type="button" class="btn" data-act="close">Cancelar</button><button class="btn red">Guardar ajuste</button></div></form>');
+  let to='bodega';const tg=$('#mvTo'),dg=$('#mvDir');
+  tg&&(tg.onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;to=b.dataset.v;tg.querySelectorAll('[data-v]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===to))});
+  dg&&(dg.onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;dir=b.dataset.v;dg.querySelectorAll('[data-v]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===dir))});
+  $('#mvf').onsubmit=e=>{e.preventDefault();
+    if(t==='entrada'){const q=Math.max(0,+$('#mvQ').value||0),note=$('#mvN').value.trim();if(!q)return;closeModal();invMove(it,s.barra+(to==='barra'?q:0),s.bodega+(to==='bodega'?q:0),'entrada','+'+qn(q)+' '+it.unit+' a '+to+(note?' · '+note:''));toast('Entrada registrada')}
+    if(t==='traspaso'){const q=Math.max(0,+$('#mvQ').value||0);if(!q)return;const from=dir==='bb'?s.bodega:s.barra;if(q>from){$('#mvE').textContent='Solo hay '+qn(from)+' en '+(dir==='bb'?'bodega':'barra')+'.';return}closeModal();
+      invMove(it,dir==='bb'?s.barra+q:s.barra-q,dir==='bb'?s.bodega-q:s.bodega+q,'traspaso',qn(q)+' '+it.unit+(dir==='bb'?' bodega → barra':' barra → bodega'));toast('Traspaso registrado')}
+    if(t==='ajuste'){const nb=Math.max(0,+$('#mvB').value||0),ng=Math.max(0,+$('#mvG').value||0),w=$('#mvW').value.trim();if(!w)return;closeModal();invMove(it,nb,ng,'ajuste','barra '+qn(s.barra)+'→'+qn(nb)+' · bodega '+qn(s.bodega)+'→'+qn(ng),w,true);toast('Ajuste guardado')}};
+}
+
 /* ---------- vistas ---------- */
 function render(){
   overlayOB();updNet();
@@ -3790,12 +3879,12 @@ function render(){
   $('#cutbar').innerHTML=needCut()&&['admin','cajero','mesero'].includes(r)?'<span>Hay '+fmt(cashNow())+' en efectivo en caja. Se debe hacer un corte parcial cada '+fmt(cutLimit())+(canCash()?'.':': avisa al cajero.')+'</span>'+(canCash()?'<button class="btn" data-act="retiro">Hacer corte parcial</button>':''):'';
   $('#ventasBack').hidden=!adm;
   const alerts=S.log.filter(l=>l.alert).length,low=lowList().length,nk=a=>S.orders.filter(o=>o.area===a&&(o.status==='nuevo'||(o.cancel&&o.status!=='entregado'))).length;
-  const items=adm?[['mesas','palm','Salón'],['kds:cocina','chef','Cocina',nk('cocina')],['kds:barra','bar','Barra',nk('barra')],['admin','gear','Administración',alerts+low]].concat(r==='soporte'?[['soporte','key','Soporte']]:[]):r==='mesero'?[['mesas','palm','Salón'],['mis','people','Mi perfil y corte']]:r==='cocina'||r==='barra'?[['kds:'+r,r==='cocina'?'chef':'bar','Monitor'],['conteo','box','Inventario del día']]:r==='cajero'?[['mesas','palm','Salón'],['ventas','cash','Caja y cortes',needCut()?'!':0]]:[];
+  const items=adm?[['mesas','palm','Salón'],['kds:cocina','chef','Cocina',nk('cocina')],['kds:barra','bar','Barra',nk('barra')],['admin','gear','Administración',alerts+low]].concat(r==='soporte'?[['soporte','key','Soporte']]:[]):r==='mesero'?[['mesas','palm','Salón'],['mis','people','Mi perfil y corte']]:r==='cocina'||r==='barra'?[['kds:'+r,r==='cocina'?'chef':'bar','Monitor'],['conteo','box','Inventario']]:r==='cajero'?[['mesas','palm','Salón'],['ventas','cash','Caja y cortes',needCut()?'!':0]]:[];
   $('#nav').innerHTML=items.map(([k,ic,l,b])=>{const [v,a]=k.split(':'),cur=a?S.view==='kds'&&S.kArea===a:(S.view===v||(v==='mesas'&&S.view==='cuenta')||(v==='admin'&&['ventas','inventario','personal','bitacora','conteo'].includes(S.view)));return'<button data-act="nav" data-id="'+k+'" aria-current="'+cur+'">'+svg(ic)+l+(b?'<span class="badge">'+b+'</span>':'')+'</button>'}).join('')+(adm||r==='cajero'?'<button class="prn" data-act="nav" data-id="impresora" aria-label="Impresora: '+(prOk()?'lista':'sin conectar')+'" aria-current="'+(S.view==='impresora')+'">'+svg('print')+'<span class="pd'+(prOk()?' on':'')+'"></span></button>':'')+'<button class="me" data-act="account"><span class="av" style="display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;color:#fff;font-size:13px;font-weight:700;background:'+colorOf(u.id)+'">'+esc(u.name.slice(0,1).toUpperCase())+'</span>'+esc(u.name)+(r==='soporte'?' · soporte':'')+'</button>';
   $$('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+S.view));
   $('#mbar').classList.toggle('on',S.view==='cuenta');
   $('#prBack').hidden=!adm;
-  ({conteo:rConteo,soporte:rSoporte,mesas:rMesas,cuenta:rCuenta,kds:rKds,admin:rAdmin,ventas:rVentas,mis:rMis,inventario:rInv,personal:rPers,bitacora:rLog,impresora:rPrinter})[S.view]();
+  ({conteo:rInvView,soporte:rSoporte,mesas:rMesas,cuenta:rCuenta,kds:rKds,admin:rAdmin,ventas:rVentas,mis:rMis,inventario:rInv,personal:rPers,bitacora:rLog,impresora:rPrinter})[S.view]();
 }
 function tableSvg(t,st){
   const n=t.seats,sq=t.shape==='cuadrada',fill=st==='libre'?'url(#gSand)':'url(#gSun)',stroke=st==='libre'?'#d9c49b':'#e88a2f',chair=st==='libre'?'var(--chair)':'#ffb36b';
@@ -3856,7 +3945,7 @@ function rAdmin(){
   const T=[['ventas','cash','#0b5ea8','Ventas y corte','Ventas, propinas, cortes parciales y corte de caja',fmt(c.total)+' en '+c.ok.length+' tickets'+(needCut()?' · corte parcial pendiente':''),needCut()],
     ['bitacora','list','#c62828','Bitácora','Todo lo que hizo cada usuario',alerts?alerts+' alertas en el turno':S.log.length+' movimientos',alerts],
     ['inventario','box','#e09a00','Menú y precios','Editar menú, precios, opciones e inventario',low?low+' por acabarse':'Existencias en orden',low],
-    ['conteo','box','#8a5a00','Inventario del día','Conteo diario de cocina y barra',Object.keys(AREAS).map(a=>AREAS[a]+': '+(S.conteos.find(x=>x.id===today()+'-'+a)?'hecho':'pendiente')).join(' · '),S.conteos.some(x=>!x.applied&&x.items.some(i=>i.diff))],
+    ['conteo','box','#8a5a00','Inventario','Barra y bodega · conteo diario',(S.conteos.find(x=>x.id===today()&&x.kind==='inv')?'Conteo de hoy hecho':'Conteo de hoy pendiente')+(invLowList().length?' · '+invLowList().length+' por surtir':''),invLowList().length>0],
     ['personal','people','#2e8b57','Personal y mesas','Usuarios, PIN, roles, reparto de mesas',act+' usuarios · '+S.tables.length+' mesas'],
     ['kds:cocina','chef','#f2602e','Monitor cocina','Pedidos de alimentos en vivo',S.orders.filter(o=>o.area==='cocina'&&o.status!=='entregado').length+' pedidos activos'],
     ['kds:barra','bar','#7b3fa0','Monitor barra','Bebidas, cervezas y micheladas',S.orders.filter(o=>o.area==='barra'&&o.status!=='entregado').length+' pedidos activos'],
@@ -3998,15 +4087,23 @@ const ACT={
     confirmBox('¿Entregar mi corte?','Cuentas cobradas: '+c.cuentas+' · Efectivo '+fmt(c.efectivo)+' · Tarjeta '+fmt(c.tarjeta)+' · Propinas '+fmt(c.propEf+c.propTj)+' · Total '+fmt(c.total)+'. Entrega el efectivo al cajero o administrador.','Entregar corte',()=>{
       write('mcortes/'+uid(),{at:c.at,waiter:c.id,name:c.name,cuentas:c.cuentas,mesas:c.mesas,consumo:c.consumo,efectivo:c.efectivo,tarjeta:c.tarjeta,propEf:c.propEf,propTj:c.propTj,total:c.total,productos:c.productos.slice(0,60),borrados:c.borrados.slice(0,60)});
       logEv('ventas','Entregó corte de mesero',c.name+' · '+c.cuentas+' cuentas · '+fmt(c.total)+(c.borrados.length?' · quitó '+c.borrados.length+' productos':''));toast('Corte entregado');if(pr.auto)ACT.misPrint()})},
-  cArea:id=>{S.cArea=id;rConteo()},
-  cSave:()=>{const a=S.cArea,rows=[...$$('#cBody tr[data-pid]')],items=[];let miss=0;
-    for(const tr of rows){const v=tr.querySelector('.cq').value;if(v===''){miss++;continue}const p=S.catalog.find(x=>x.id===tr.dataset.pid),sys=+tr.dataset.sys,cnt=Math.max(0,Math.floor(+v));items.push({pid:p.id,name:p.name,sys,count:cnt,diff:cnt-sys})}
-    if(miss){toast('Faltan '+miss+' productos por contar');return}
-    const dif=items.filter(i=>i.diff);write('conteos/'+today()+'-'+a,{date:today(),area:a,at:Date.now(),by:S.me,byName:uname(S.me),items,applied:false});
-    logEv('inventario','Guardó conteo del día · '+AREAS[a],dif.length?dif.map(i=>i.name+' '+(i.diff>0?'+':'')+i.diff).join(', '):'Todo cuadra',dif.length>0);toast('Conteo guardado'+(dif.length?' · '+dif.length+' con diferencia':''))},
-  cApply:id=>{if(!isAdmin())return;const x=S.conteos.find(c=>c.id===id);if(!x)return;
-    confirmBox('¿Aplicar el conteo al inventario?','Las existencias de '+AREAS[x.area].toLowerCase()+' quedarán como se contaron el '+x.date+'.','Aplicar',()=>{for(const i of x.items)write('stock/'+i.pid,{qty:i.count},true);const c=clone(x);delete c.id;c.applied=true;c.appliedBy=uname(S.me);c.appliedAt=Date.now();write('conteos/'+id,c);
-      logEv('inventario','Aplicó conteo al inventario',AREAS[x.area]+' '+x.date+': '+x.items.filter(i=>i.diff).map(i=>i.name+' '+i.sys+'→'+i.count).join(', '),true);toast('Inventario actualizado')})},
+  invTab:id=>{S.invTab=id;render()},
+  invCat:id=>{S.invCat=id;render()},
+  invNew:()=>invItemModal(null),
+  invEdit:id=>{const it=S.inv.find(x=>x.id===id);it&&invItemModal(it)},
+  invMv:(id,b)=>{const it=S.inv.find(x=>x.id===id);it&&invMoveModal(it,b.dataset.t)},
+  invSeed:()=>{if(!isAdmin()||S.inv.length)return;saveInv(INV0);logEv('inventario','Cargó artículos sugeridos',INV0.length+' artículos');toast('Artículos cargados: ahora registra las existencias con Ajustar o Entrada')},
+  cSave:()=>{if(!canInv())return;const items=[];let n=0;
+    for(const tr of $$('#cBody tr[data-iid]')){const it=S.inv.find(x=>x.id===tr.dataset.iid);if(!it)continue;const vb=tr.querySelector('.cb').value,vg=tr.querySelector('.cg').value;if(vb!==''||vg!=='')n++;
+      items.push({id:it.id,name:it.name,unit:it.unit,sb:+tr.dataset.sb,sg:+tr.dataset.sg,cb:vb===''?null:+qn(Math.max(0,+vb)),cg:vg===''?null:+qn(Math.max(0,+vg))})}
+    if(!n){toast('Escribe al menos un conteo');return}
+    const dif=items.filter(i=>(i.cb!=null&&i.cb!==i.sb)||(i.cg!=null&&i.cg!==i.sg));
+    write('conteos/'+today(),{kind:'inv',date:today(),at:Date.now(),by:S.me,byName:uname(S.me),items,applied:false});
+    logEv('inventario','Guardó conteo del día',n+' artículos contados'+(dif.length?' · '+dif.length+' con diferencia: '+dif.slice(0,8).map(i=>i.name).join(', '):' · todo cuadra'),dif.length>0);toast('Conteo guardado'+(dif.length?' · '+dif.length+' con diferencia':''))},
+  invApply:id=>{if(!isAdmin())return;const x=S.conteos.find(c=>c.id===id);if(!x)return;
+    confirmBox('¿Aplicar el conteo del '+x.date+'?','Las existencias quedarán como se contaron (solo los artículos que se contaron).','Aplicar',()=>{
+      for(const i of x.items){if(i.cb==null&&i.cg==null)continue;const it=S.inv.find(y=>y.id===i.id);if(!it)continue;const s=invOf(it.id),nb=i.cb!=null?i.cb:s.barra,ng=i.cg!=null?i.cg:s.bodega;if(nb!==s.barra||ng!==s.bodega)invMove(it,nb,ng,'conteo','barra '+qn(s.barra)+'→'+qn(nb)+' · bodega '+qn(s.bodega)+'→'+qn(ng),'conteo del '+x.date)}
+      const c=clone(x);delete c.id;c.applied=true;c.appliedBy=uname(S.me);c.appliedAt=Date.now();write('conteos/'+id,c);logEv('inventario','Aplicó conteo al inventario',x.date,true);toast('Inventario actualizado')})},
   supLogin:()=>supLogin(),
   supBackup:()=>backupDownload(),
   supCopy:()=>{copy(JSON.stringify(backupObj()));logEv('soporte','Copió respaldo','')},
@@ -4158,7 +4255,8 @@ $('#supKeyF').addEventListener('submit',e=>{e.preventDefault();const c=supCfg(),
   if(supHash(o,c.salt)!==c.hash){$('#skE').textContent='La llave actual no es correcta.';return}if(n.length<10){$('#skE').textContent='La nueva llave debe tener al menos 10 caracteres.';return}if(n!==$('#skNew2').value.trim().toUpperCase()){$('#skE').textContent='Las llaves nuevas no coinciden.';return}
   const salt=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>b.toString(16).padStart(2,'0')).join('');S.info={...S.info,sup:{salt,hash:supHash(n,salt)}};write('config/catalog',catDoc());logEv('soporte','Cambió la llave maestra','',true);$('#supKeyF').reset();$('#skE').textContent='';toast('Llave maestra actualizada')});
 $('#supAdmF').addEventListener('submit',e=>{e.preventDefault();const n=$('#saN').value.trim(),p=$('#saP').value;if(!n||!/^\d{4,6}$/.test(p)){toast('PIN de 4 a 6 números');return}saveUsers([...S.users,{id:uid(),name:n,role:'admin',...mkPin(p),active:true}]);logEv('soporte','Creó administrador de emergencia',n,true);$('#supAdmF').reset();toast('Administrador creado')});
-$('#cBody').addEventListener('input',e=>{const tr=e.target.closest('tr[data-pid]');if(!tr)return;const v=e.target.value,d=v===''?'':Math.floor(+v)-(+tr.dataset.sys);tr.querySelector('.cd').textContent=d===''?'':(d>0?'+':'')+d;tr.querySelector('.cd').className='r num cd '+(d<0?'neg':d>0?'pos':'')});
+$('#cBody').addEventListener('input',e=>{const tr=e.target.closest('tr[data-iid]');tr&&updDiff(tr)});
+$('#invQ').addEventListener('input',()=>rInvView());
 $('#bLim').addEventListener('change',e=>{const old=cutLimit();S.info={...S.info,limit:Math.max(0,Math.round(+e.target.value||0))};write('config/catalog',catDoc());logEv('personal','Cambió límite de corte parcial',fmt(old)+' → '+fmt(S.info.limit),true)});
 $('#addForm').addEventListener('submit',e=>{e.preventDefault();const name=$('#pName').value.trim(),cat=$('#pCat').value.trim()||'Otros',price=+$('#pPrice').value,sv=$('#pStock').value,area=$('#pArea').value||areaOf(cat);
   if(!name||!(price>=0))return;const id=uid(),track=sv!=='';S.catalog=[...S.catalog,{id,name,cat,price,active:true,track,min:track?5:0,area,opts:defOpts(cat)}];write('config/catalog',catDoc());if(track)write('stock/'+id,{qty:Math.max(0,Math.floor(+sv))});
