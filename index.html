@@ -2814,6 +2814,8 @@ input:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid 
 .prod i.low{color:var(--red);font-weight:500}
 .prod:disabled{opacity:.45;cursor:not-allowed}
 .pw{position:relative;display:flex}.pw .prod{flex:1}
+.ph{display:block;width:100%;height:88px;border-radius:12px;background:var(--soft) center/cover no-repeat;margin-bottom:4px}
+.eph{width:110px;height:110px;border-radius:14px;background:var(--soft) center/cover no-repeat;border:1.5px solid var(--line);flex:none;display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center}
 .pnote{position:absolute;right:8px;bottom:8px;width:40px;height:40px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);display:grid;place-items:center;cursor:pointer;color:var(--ocean)}
 .pnote svg{width:18px;height:18px}
 .chips.wrap{flex-wrap:wrap;overflow:visible}
@@ -3230,7 +3232,7 @@ const SEED=[{"id": "c01", "name": "Charola de $400", "cat": "Charolas", "price":
 const BIZ0={biz:'La Costa Botanera',tag:'De Todo Un Poco',city:'Tonalá, Chiapas',tel:'966 106 0549',foot:'¡Gracias por su visita!',limit:5000};
 const COLS=['tabs','sales','cortes','orders','log','logarch','retiros','mcortes','conteos'];
 
-const S={mode:'loading',ready:false,catalog:[],info:{...BIZ0},users:[],tables:[],tabs:[],sales:[],cortes:[],orders:[],log:[],logarch:[],retiros:[],mcortes:[],conteos:[],stock:{},me:null,view:'mesas',open:null,openTable:null,cat:'Todo',q:'',all:false,note:'',logCat:'todos',logSrc:'cur',flash:null};
+const S={mode:'loading',ready:false,catalog:[],info:{...BIZ0},users:[],tables:[],tabs:[],sales:[],cortes:[],orders:[],log:[],logarch:[],retiros:[],mcortes:[],conteos:[],stock:{},imgs:{},me:null,view:'mesas',open:null,openTable:null,cat:'Todo',q:'',all:false,note:'',logCat:'todos',logSrc:'cur',flash:null};
 let db=null,dl=null,L=null;const LKEY='lcb-pos-v1';
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
 
@@ -3238,11 +3240,13 @@ const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k
 const cleanUsers=d=>d&&Array.isArray(d.users)?d.users.map(u=>({id:String(u.id),name:String(u.name||''),role:ROLES[u.role]?u.role:'mesero',pin:String(u.pin||''),pinS:String(u.pinS||''),pinH:String(u.pinH||''),active:u.active!==false})):[];
 const cleanTables=d=>d&&Array.isArray(d.tables)?d.tables.map(t=>({id:String(t.id),name:String(t.name||''),zone:String(t.zone||''),waiter:t.waiter?String(t.waiter):'',seats:Math.min(10,Math.max(2,+t.seats||4)),shape:t.shape==='cuadrada'?'cuadrada':'redonda'})):[];
 const cleanCat=d=>d&&Array.isArray(d.products)?d.products.map(p=>({id:String(p.id),name:String(p.name||''),cat:String(p.cat||'Otros'),price:+p.price||0,active:p.active!==false,track:!!p.track,min:+p.min||0,area:AREAS[p.area]?p.area:areaOf(p.cat),opts:typeof p.opts==='string'?p.opts:defOpts(p.cat)})):[];
+const okImg=v=>typeof v==='string'&&v.length<120000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v);
 const sorters={cortes:(a,b)=>b.closedAt-a.closedAt,logarch:(a,b)=>b.closedAt-a.closedAt};
 function applyLocal(path,data){
   const [col,id]=path.split('/');
   if(col==='config'){if(id==='catalog'){S.catalog=cleanCat(data);S.info={...BIZ0,...(data&&data.info||{})}}else if(id==='users')S.users=cleanUsers(data);else S.tables=cleanTables(data);return}
   if(col==='stock'){if(data)S.stock[id]=+data.qty||0;else delete S.stock[id];return}
+  if(col==='img'){const v=data&&data.src;if(okImg(v))S.imgs[id]=v;else delete S.imgs[id];return}
   const list=S[col].filter(x=>x.id!==id);if(data)list.push({...clone(data),id});
   list.sort(sorters[col]||((a,b)=>(a.at||0)-(b.at||0)));S[col]=list;
 }
@@ -3283,9 +3287,9 @@ const catDoc=()=>({info:S.info,products:S.catalog});
 function logEv(cat,action,detail,alert){if(!S.me&&cat!=='acceso')return;write('log/'+uid(),{at:Date.now(),user:S.me||'',userName:uname(S.me),cat,action,detail:String(detail||''),alert:!!alert},true)}
 function loadLocal(){let sv=null;try{sv=JSON.parse(ls.get(LKEY)||'null')}catch(e){}
   if(!sv||!sv.config){sv={config:{catalog:{info:BIZ0,products:SEED.map(({stock,...p})=>p)},users:{users:[]},tables:{tables:Array.from({length:10},(_,i)=>({id:'m'+(i+1),name:'Mesa '+(i+1),zone:i<6?'Salón':'Terraza',waiter:'',seats:i%3===2?6:4,shape:i%4===3?'cuadrada':'redonda'}))}},stock:{}};SEED.forEach(p=>{if(p.track)sv.stock[p.id]={qty:p.stock}})}
-  for(const c of[...COLS,'stock'])sv[c]=sv[c]||{};
+  for(const c of[...COLS,'stock','img'])sv[c]=sv[c]||{};
   L=sv;for(const c of COLS)S[c]=[];S.stock={};for(const k of['catalog','users','tables'])applyLocal('config/'+k,L.config[k]);
-  for(const c of[...COLS,'stock'])for(const [id,v] of Object.entries(L[c]))applyLocal(c+'/'+id,v);
+  S.imgs={};for(const c of[...COLS,'stock','img'])for(const [id,v] of Object.entries(L[c]))applyLocal(c+'/'+id,v);
 }
 const seedTables=()=>Array.from({length:10},(_,i)=>({id:'m'+(i+1),name:'Mesa '+(i+1),zone:i<6?'Salón':'Terraza',waiter:'',seats:i%3===2?6:4,shape:i%4===3?'cuadrada':'redonda'}));
 function seedIfEmpty(){if(S.mode!=='db'||S.catalog.length)return;write('config/catalog',{info:BIZ0,products:SEED.map(({stock,...p})=>p)},true);if(!S.tables.length)write('config/tables',{tables:seedTables()},true);SEED.forEach(p=>{if(p.track)write('stock/'+p.id,{qty:p.stock},true)})}
@@ -3304,6 +3308,7 @@ function startDb(){
   db.collection('orders').onSnapshot(q=>{done(q);const next=rows(q).sort((a,b)=>(a.at||0)-(b.at||0));orderDiff(S.orders,next);S.orders=next;render()},err);
   for(const c of['mcortes','conteos'])db.collection(c).onSnapshot(q=>{done(q);S[c]=q.docs.map(x=>({...clone(x.data()),id:x.id})).sort((a,b)=>a.at-b.at);render()},err);
   db.collection('retiros').onSnapshot(q=>{done(q);S.retiros=q.docs.map(x=>({...clone(x.data()),id:x.id})).sort((a,b)=>a.at-b.at);render()},err);
+  db.collection('img').onSnapshot(q=>{done(q);S.imgs={};q.docs.forEach(x=>{const v=x.data().src;if(okImg(v))S.imgs[x.id]=v});render()},err);
   db.collection('stock').onSnapshot(q=>{done(q);S.stock={};q.docs.forEach(x=>S.stock[x.id]=+x.data().qty||0);render()},err);
   db.collection('cortes').orderBy('closedAt','desc').limit(40).onSnapshot(q=>{done(q);S.cortes=rows(q);render()},err);
 }
@@ -3399,7 +3404,7 @@ function supLogin(){
     $('#supe').textContent='Llave incorrecta ('+n+' de 5).';$('#supk').select()};
 }
 function backupObj(){const col=c=>Object.fromEntries(S[c].map(({id,...x})=>[id,x]));
-  return{programa:'La Costa Botanera POS',version:4,creado:new Date().toISOString(),config:{catalog:catDoc(),users:{users:S.users},tables:{tables:S.tables}},stock:Object.fromEntries(Object.entries(S.stock).map(([k,v])=>[k,{qty:v}])),tabs:col('tabs'),sales:col('sales'),cortes:col('cortes'),orders:col('orders'),retiros:col('retiros'),log:col('log')}}
+  return{programa:'La Costa Botanera POS',version:4,creado:new Date().toISOString(),config:{catalog:catDoc(),users:{users:S.users},tables:{tables:S.tables}},stock:Object.fromEntries(Object.entries(S.stock).map(([k,v])=>[k,{qty:v}])),img:Object.fromEntries(Object.entries(S.imgs).map(([k,v])=>[k,{src:v}])),tabs:col('tabs'),sales:col('sales'),cortes:col('cortes'),orders:col('orders'),retiros:col('retiros'),log:col('log')}}
 async function backupDownload(obj){const txt=JSON.stringify(obj||backupObj(),null,1),name='respaldo-la-costa-botanera-'+new Date().toISOString().slice(0,10)+'.json';logEv('soporte','Descargó respaldo','');
   if(dl){try{await dl.save({filename:name,data:txt});toast('Respaldo descargado')}catch(e){toast(e&&e.code==='declined'?'Descarga cancelada':'No se pudo descargar; usa Copiar respaldo')}return}
   try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();toast('Respaldo descargado')}catch(e){copy(txt)}}
@@ -3411,7 +3416,7 @@ function restoreBackup(txt){let o;try{o=JSON.parse(txt)}catch(e){toast('El texto
   if(!o||!o.config||!o.config.catalog){toast('El texto no es un respaldo de este programa');return}
   confirmBox('¿Restaurar respaldo?','Se reemplazará el menú, usuarios, mesas e inventario, y se agregarán las cuentas, ventas y cortes del respaldo ('+(o.creado||'sin fecha')+').','Restaurar',()=>{
     for(const k of['catalog','users','tables'])if(o.config[k])write('config/'+k,o.config[k],true);
-    for(const c of['stock','tabs','sales','cortes','orders','retiros'])for(const [id,v] of Object.entries(o[c]||{}))write(c+'/'+id,v,true);
+    for(const c of['stock','img','tabs','sales','cortes','orders','retiros'])for(const [id,v] of Object.entries(o[c]||{}))write(c+'/'+id,v,true);
     logEv('soporte','Restauró respaldo',o.creado||'',true);render();toast('Respaldo restaurado')})}
 function rSoporte(){
   const n=c=>S[c].length;
@@ -3822,7 +3827,7 @@ function rCuenta(){
   const q=S.q.toLowerCase(),list=act.filter(p=>(S.cat==='Todo'||p.cat===S.cat)&&(!q||p.name.toLowerCase().includes(q)));
   const inT=pid=>t?t.items.filter(i=>i.pid===pid).reduce((a,i)=>a+i.qty,0):0;
   $('#grid').innerHTML=list.length?list.map(p=>{const st=S.stock[p.id]||0,out=p.track&&st<=0,n=inT(p.id),[k,col]=catIco(p.cat),rq=hasReq(p);
-    return'<div class="pw"><button class="prod" data-act="add" data-id="'+esc(p.id)+'"'+(out?' disabled':'')+'>'+(n?'<span class="n">'+n+'</span>':'')+'<span class="ico" style="background:'+col+'">'+svg(k)+'</span><b>'+esc(p.name)+'</b><i'+(p.track&&st<=p.min&&canInv()?' class="low"':'')+'>'+(out?'Agotado':p.track&&canInv()?'Quedan '+st:rq?'Elige opción':AREAS[p.area])+'</i><span class="pr num">'+fmt(p.price)+'</span></button>'+(out?'':'<button class="pnote" data-act="addNote" data-id="'+esc(p.id)+'" aria-label="Agregar '+esc(p.name)+' con nota">'+svg('note')+'</button>')+'</div>'}).join(''):'<p class="empty">'+(S.catalog.length?'Nada coincide con tu búsqueda.':'Aún no hay productos.')+'</p>';
+    return'<div class="pw"><button class="prod" data-act="add" data-id="'+esc(p.id)+'"'+(out?' disabled':'')+'>'+(n?'<span class="n">'+n+'</span>':'')+(S.imgs[p.id]?'<span class="ph" style="background-image:url('+S.imgs[p.id]+')"></span>':'<span class="ico" style="background:'+col+'">'+svg(k)+'</span>')+'<b>'+esc(p.name)+'</b><i'+(p.track&&st<=p.min&&canInv()?' class="low"':'')+'>'+(out?'Agotado':p.track&&canInv()?'Quedan '+st:rq?'Elige opción':AREAS[p.area])+'</i><span class="pr num">'+fmt(p.price)+'</span></button>'+(out?'':'<button class="pnote" data-act="addNote" data-id="'+esc(p.id)+'" aria-label="Agregar '+esc(p.name)+' con nota">'+svg('note')+'</button>')+'</div>'}).join(''):'<p class="empty">'+(S.catalog.length?'Nada coincide con tu búsqueda.':'Aún no hay productos.')+'</p>';
   const tot=tabTotal(t),n=t?t.items.reduce((a,i)=>a+i.qty,0):0,pend=pendingOf(t),os=t?ordersOf(t.id):[],ready=os.filter(o=>o.status==='listo');
   const ks={nuevo:0,prep:0,listo:0};os.forEach(o=>ks[o.status]=(ks[o.status]||0)+1);
   const stat=t?(t.bill?'<span class="st" style="background:#7b3fa0;color:#fff">Pidió la cuenta</span>':'<span class="st e">Cuenta abierta</span>')+(t.rounds?'<span class="st e">'+t.rounds+(t.rounds===1?' ronda enviada':' rondas enviadas')+'</span>':'')+(ks.nuevo?'<span class="st e">'+ks.nuevo+' recibido</span>':'')+(ks.prep?'<span class="st k">'+ks.prep+' preparando</span>':'')+(ks.listo?'<span class="st l">'+ks.listo+' listo</span>':''):'';
@@ -3891,7 +3896,7 @@ function rInv(){
   $('#lowNote').textContent=low.length?'Por acabarse: '+low.map(p=>p.name+' ('+(S.stock[p.id]||0)+')').join(', '):'';
   $('#catList').innerHTML=[...new Set(S.catalog.map(p=>p.cat))].map(c=>'<option value="'+esc(c)+'">').join('');
   if($('#prods').contains(document.activeElement)){invDirty=true;return}
-  $('#prods').innerHTML=S.catalog.length?S.catalog.map(p=>{const st=S.stock[p.id]||0,[k,col]=catIco(p.cat);return'<tr data-id="'+esc(p.id)+'" class="'+(p.track&&st<=p.min?'low':'')+'"><td><div style="display:flex;gap:10px;align-items:center"><span class="ico" style="background:'+col+';width:32px;height:32px;flex:none">'+svg(k)+'</span><span class="pname">'+esc(p.name)+'<small>'+esc(p.cat)+' · '+AREAS[p.area]+(p.opts?' · con opciones':'')+'</small></span></div></td><td><input class="in num" type="number" min="0" step="any" data-f="price" value="'+esc(p.price)+'" aria-label="Precio de '+esc(p.name)+'" style="max-width:110px"></td><td class="r num"><b>'+(p.track?st:'—')+'</b>'+(p.track?'<small style="display:block;color:var(--muted)">mín. '+p.min+'</small>':'')+'</td><td><input type="checkbox" data-f="active" '+(p.active?'checked':'')+' aria-label="Activo" style="width:24px;height:24px"></td><td class="r" style="white-space:nowrap"><button class="btn navy" data-act="editProd" data-id="'+esc(p.id)+'">Editar</button> <button class="btn" data-act="entrada" data-id="'+esc(p.id)+'"'+(p.track?'':' disabled')+'>Entrada</button> <button class="btn" data-act="delProd" data-id="'+esc(p.id)+'">Borrar</button></td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Sin productos.</td></tr>';
+  $('#prods').innerHTML=S.catalog.length?S.catalog.map(p=>{const st=S.stock[p.id]||0,[k,col]=catIco(p.cat);return'<tr data-id="'+esc(p.id)+'" class="'+(p.track&&st<=p.min?'low':'')+'"><td><div style="display:flex;gap:10px;align-items:center">'+(S.imgs[p.id]?'<span style="width:40px;height:40px;border-radius:10px;flex:none;background:center/cover url('+S.imgs[p.id]+')"></span>':'<span class="ico" style="background:'+col+';width:32px;height:32px;flex:none">'+svg(k)+'</span>')+'<span class="pname">'+esc(p.name)+'<small>'+esc(p.cat)+' · '+AREAS[p.area]+(p.opts?' · con opciones':'')+'</small></span></div></td><td><input class="in num" type="number" min="0" step="any" data-f="price" value="'+esc(p.price)+'" aria-label="Precio de '+esc(p.name)+'" style="max-width:110px"></td><td class="r num"><b>'+(p.track?st:'—')+'</b>'+(p.track?'<small style="display:block;color:var(--muted)">mín. '+p.min+'</small>':'')+'</td><td><input type="checkbox" data-f="active" '+(p.active?'checked':'')+' aria-label="Activo" style="width:24px;height:24px"></td><td class="r" style="white-space:nowrap"><button class="btn navy" data-act="editProd" data-id="'+esc(p.id)+'">Editar</button> <button class="btn" data-act="entrada" data-id="'+esc(p.id)+'"'+(p.track?'':' disabled')+'>Entrada</button> <button class="btn" data-act="delProd" data-id="'+esc(p.id)+'">Borrar</button></td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Sin productos.</td></tr>';
 }
 let persDirty=false;
 function rPers(){
@@ -4028,6 +4033,7 @@ const ACT={
   delTable:id=>{if(tabOf(id)){toast('La mesa tiene una cuenta abierta');return}const t=S.tables.find(x=>x.id===id);t&&reasonBox('¿Quitar '+t.name+'?','Escribe el motivo: queda registrado con tu usuario.',why=>{saveTables(S.tables.filter(x=>x.id!==id));logEv('personal','Quitó mesa',t.name+' · Motivo: '+why,true)})},
   clearAssign:()=>confirmBox('¿Quitar asignaciones?','Todas las mesas quedarán sin mesero asignado.','Quitar',()=>{saveTables(S.tables.map(t=>({...t,waiter:''})));logEv('personal','Quitó todas las asignaciones de mesas','')})
 };
+function shrinkImg(file){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onload=()=>{const S2=240,c=document.createElement('canvas');c.width=S2;c.height=Math.round(S2*.75);const x=c.getContext('2d'),r=Math.max(c.width/im.width,c.height/im.height),w=im.width*r,h=im.height*r;x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,(c.width-w)/2,(c.height-h)/2,w,h);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',.78))};im.onerror=()=>{URL.revokeObjectURL(url);rej()};im.src=url})}
 function addItem(p,qty,note){
   const t=ensureTab();if(!t)return false;note=note||'';
   const inTab=t.items.filter(x=>x.pid===p.id).reduce((a,x)=>a+x.qty,0);
@@ -4068,12 +4074,15 @@ ACT.editProd=id=>{const p=S.catalog.find(x=>x.id===id);if(!p)return;
     '<label class="l">Precio (MXN)<input type="number" id="eP" min="0" step="any" inputmode="decimal" required value="'+esc(p.price)+'"></label>'+
     '<label class="l">Categoría<input type="text" id="eC" list="catList" maxlength="30" required value="'+esc(p.cat)+'"></label>'+
     '<label class="l">Se prepara en<select id="eA"><option value="cocina"'+(p.area==='cocina'?' selected':'')+'>Cocina</option><option value="barra"'+(p.area==='barra'?' selected':'')+'>Barra</option></select></label>'+
+    '<div class="l" style="display:grid;gap:6px">Foto del producto<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="eph" id="ePh"'+(S.imgs[p.id]?' style="background-image:url('+S.imgs[p.id]+')"':'')+'>'+(S.imgs[p.id]?'':'Sin foto')+'</span><div style="display:grid;gap:6px"><label class="btn navy" style="cursor:pointer">Tomar o subir foto<input type="file" accept="image/*" capture="environment" id="eFile" hidden></label><button type="button" class="btn" id="eNoPh"'+(S.imgs[p.id]?'':' hidden')+'>Quitar foto</button></div></div></div>'+
     '<label class="l">Opciones y notas rápidas<textarea class="in" id="eO" placeholder="Cerveza*: Corona, Victoria; Extras: sin chile, extra limón">'+esc(p.opts)+'</textarea></label>'+
     '<p class="hint" style="margin:-4px 0 0">Separa los grupos con punto y coma (;) y las opciones con coma. Si el grupo termina en <b>*</b> el mesero tiene que elegir uno (por ejemplo <b>Cerveza*</b> en micheladas).</p><p class="hint" id="eprev" style="margin:0"></p>'+
     '<label class="l" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eT" style="width:22px;height:22px"'+(p.track?' checked':'')+'> Contar inventario de este producto</label>'+
     '<label class="l">Avisar cuando queden<input type="number" id="eM" min="0" step="1" value="'+esc(p.min)+'"></label>'+
     '<label class="l" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eV" style="width:22px;height:22px"'+(p.active?' checked':'')+'> Disponible en el menú</label>'+
     '<div class="row"><button type="button" class="btn" data-act="close">Cancelar</button><button class="btn gold">Guardar cambios</button></div></form>');
+  $('#eFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const src=await shrinkImg(f);write('img/'+id,{src},true);logEv('inventario','Cambió foto',p.name);const ph=$('#ePh');ph.style.backgroundImage='url('+src+')';ph.textContent='';$('#eNoPh').hidden=false;render();toast('Foto guardada')}catch(err){toast('No se pudo leer la imagen')}};
+  $('#eNoPh').onclick=()=>{write('img/'+id,null,true);logEv('inventario','Quitó foto',p.name);const ph=$('#ePh');ph.style.backgroundImage='';ph.textContent='Sin foto';$('#eNoPh').hidden=true;render()};
   const prev=()=>{const g=parseOpts($('#eO').value);$('#eprev').textContent=g.length?'Así se verá: '+g.map(x=>x.name+(x.req?' (obligatorio)':'')+': '+x.ch.join(' / ')).join(' · '):'Sin opciones: se agrega directo al tocarlo.'};$('#eO').oninput=prev;prev();
   $('#pe').onsubmit=e=>{e.preventDefault();
     const nw={...p,name:$('#eN').value.trim()||p.name,price:Math.max(0,+$('#eP').value||0),cat:$('#eC').value.trim()||p.cat,area:$('#eA').value,opts:$('#eO').value.trim(),track:$('#eT').checked,min:Math.max(0,Math.floor(+$('#eM').value||0)),active:$('#eV').checked};
